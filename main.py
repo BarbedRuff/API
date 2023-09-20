@@ -21,10 +21,10 @@ def add_movie():
 
 @app.route("/api/movies/<int:movie_id>", methods=["GET"])
 def find_movie_by_id(movie_id):
-    try:
+    # try:
         return engworker.findMovie(movie_id)
-    except Exception: 
-        abort(404)
+    # except Exception: 
+    #     abort(404)
         
 @app.route("/api/movies/<int:movie_id>", methods=["PATCH"])
 def patch_movie_by_id(movie_id):
