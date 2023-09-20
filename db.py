@@ -13,9 +13,9 @@ class Base(DeclarativeBase):
 class Movie(Base):
     __tablename__ = 'movies'
     id = Column(String, primary_key=True)
-    title = Column(String)
+    title = Column(String(100))
     year = Column(Integer)
-    director = Column(String)
+    director = Column(String(100))
     length = Column(Integer)
     rating = Column(Integer)
 
