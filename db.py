@@ -1,7 +1,7 @@
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Integer, String, Column
 from sqlalchemy import create_engine
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, update, delete
 from uuid import uuid4
 from config import DATABASE_NAME_COLUMNS as columns
 import json
@@ -68,7 +68,7 @@ class EngineWorker:
         except Exception as e:
             raise e
         
-    def find_movie(self, movie_id):
+    def findMovie(self, movie_id):
         id = hex(movie_id)[2:]
         stmt = select(Movie).where(Movie.id == id)
         with self.engine.connect() as conn:
@@ -86,4 +86,39 @@ class EngineWorker:
                 )
             else:
                 raise Exception('not found user')
-            
+    
+    def pathcMovie(self, movie_id, movie):
+        id = hex(movie_id)[2:]
+        stmt = update(Movie).\
+            where(Movie.id == id).\
+                values(
+                    id=id,
+                    title=movie[columns[1]],
+                    year=movie[columns[2]],
+                    director=movie[columns[3]],
+                    length=movie[columns[4]],
+                    rating=movie[columns[5]]
+                )
+        with self.engine.connect() as conn:
+            conn.execute(stmt)
+            conn.commit()
+        return json.dumps(
+            {"movie": {
+                "id": movie_id,
+                "title":movie[columns[1]],
+                "year":movie[columns[2]],
+                "director":movie[columns[3]],
+                "length":movie[columns[4]],
+                "rating":movie[columns[5]]
+            }}
+        )    
+    
+    def deleteMovie(self, movie_id):
+        id = hex(movie_id)[2:]
+        stmt = delete(Movie).\
+            where(Movie.id == id)
+        with self.engine.connect() as conn:
+            conn.execute(stmt)
+            conn.commit()
+        return ""
+    
