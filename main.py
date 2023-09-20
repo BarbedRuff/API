@@ -52,4 +52,7 @@ def patch_movie_by_id(movie_id):
         
 @app.route("/api/movies/<int:movie_id>", methods=["DELETE"])
 def delete_movie_by_id(movie_id):
-    return engworker.deleteMovie(movie_id)
+    try:
+        return engworker.deleteMovie(movie_id)
+    except Exception: 
+        return Response(response="Movie not found", status=404)

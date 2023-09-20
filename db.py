@@ -12,12 +12,12 @@ class Base(DeclarativeBase):
 
 class Movie(Base):
     __tablename__ = 'movies'
-    id = Column(String, primary_key=True)
-    title = Column(String(100))
-    year = Column(Integer)
-    director = Column(String(100))
-    length = Column(Integer)
-    rating = Column(Integer)
+    id = Column("id", String, primary_key=True)
+    title = Column("title", String(100))
+    year = Column("year", Integer)
+    director = Column("director", String(100))
+    length = Column("length", Integer)
+    rating = Column("rating", Integer)
 
 class EngineWorker:
     def __init__(self, path):
@@ -28,6 +28,7 @@ class EngineWorker:
         movies_list = []
         with self.engine.connect() as conn:
             movies = conn.execute(stmt).all()
+            conn.commit()
             movies_list = [
                 {
                     "id": int(movie[0], 16),
@@ -73,6 +74,7 @@ class EngineWorker:
         stmt = select(Movie).where(Movie.id == id)
         with self.engine.connect() as conn:
             movie = conn.execute(stmt).first()
+            conn.commit()
             if movie is not None:
                 return json.dumps(
                     {"movie": {
@@ -85,7 +87,7 @@ class EngineWorker:
                     }}
                 )
             else:
-                raise Exception('not found user')
+                raise Exception('Not found movie')
     
     def pathcMovie(self, movie_id, movie):
         id = hex(movie_id)[2:]
@@ -116,9 +118,12 @@ class EngineWorker:
     def deleteMovie(self, movie_id):
         id = hex(movie_id)[2:]
         stmt = delete(Movie).\
-            where(Movie.id == id)
+            where(Movie.id == id).\
+                returning(Movie.id)
         with self.engine.connect() as conn:
-            conn.execute(stmt)
+            deleted_id = conn.execute(stmt).first()
             conn.commit()
-        return "Deleted"
-    
+            if deleted_id is not None: 
+                return "Deleted"
+            else:
+                raise Exception('Not found movie')
