@@ -120,5 +120,5 @@ class EngineWorker:
         with self.engine.connect() as conn:
             conn.execute(stmt)
             conn.commit()
-        return ""
+        return "Deleted"
     

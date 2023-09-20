@@ -6,13 +6,7 @@ from config import DATABASE_PATH as dbpath, DATABASE_NAME_COLUMNS as columns
 app = Flask(__name__)
 engworker = EngineWorker(dbpath)
 
-@app.route("/api/movies", methods=["GET"])
-def get_all_movies():
-    return engworker.moviesList()
-
-@app.route("/api/movies",  methods=["POST"])
-def add_movie():
-    movie = request.get_json()['movie']
+def check_movie(movie):
     if len(movie[columns[1]]) > 100 or len(movie[columns[1]]) == 0:
         return Response(response="Title string length greater than 100 or equal to 0", status=500)
     elif not(1900 <= movie[columns[2]] <= 2100):
@@ -21,6 +15,18 @@ def add_movie():
         return Response(response="Director string greater than 100 or equal to 0", status=500)
     elif not(0 <= movie[columns[5]] <= 10):
         return Response(response="Rating not in range 0...10", status=500)
+
+
+@app.route("/api/movies", methods=["GET"])
+def get_all_movies():
+    return engworker.moviesList()
+
+@app.route("/api/movies",  methods=["POST"])
+def add_movie():
+    movie = request.get_json()['movie']
+    checked = check_movie(movie)
+    if checked is not None:
+        return checked
     try:
         return engworker.addMovie(movie)
     except Exception as e:
@@ -28,15 +34,21 @@ def add_movie():
 
 @app.route("/api/movies/<int:movie_id>", methods=["GET"])
 def find_movie_by_id(movie_id):
-    # try:
+    try:
         return engworker.findMovie(movie_id)
-    # except Exception: 
-    #     abort(404)
+    except Exception: 
+        return Response(response="Movie not found", status=404)
         
 @app.route("/api/movies/<int:movie_id>", methods=["PATCH"])
 def patch_movie_by_id(movie_id):
     movie = request.get_json()['movie']
-    return engworker.pathcMovie(movie_id, movie)
+    checked = check_movie(movie)
+    if checked is not None:
+        return checked
+    try:
+        return engworker.pathcMovie(movie_id, movie)
+    except Exception as e:
+        return Response(response=str(e), status=500)
         
 @app.route("/api/movies/<int:movie_id>", methods=["DELETE"])
 def delete_movie_by_id(movie_id):
