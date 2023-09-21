@@ -1,6 +1,6 @@
-from flask import Flask, request, abort, Response
-from db import EngineWorker
 from config import DATABASE_PATH as dbpath, DATABASE_NAME_COLUMNS as columns
+from flask import Flask, request, Response
+from db import EngineWorker
 
 
 app = Flask(__name__)
@@ -48,7 +48,10 @@ def patch_movie_by_id(movie_id):
     try:
         return engworker.pathcMovie(movie_id, movie)
     except Exception as e:
-        return Response(response=str(e), status=500)
+        if str(e) == "Not found movie":
+            return Response(response="Movie not found", status=404)
+        else:
+            return Response(response=str(e), status=500)
         
 @app.route("/api/movies/<int:movie_id>", methods=["DELETE"])
 def delete_movie_by_id(movie_id):

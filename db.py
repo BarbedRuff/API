@@ -2,8 +2,8 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Integer, String, Column
 from sqlalchemy import create_engine
 from sqlalchemy import select, insert, update, delete
-from uuid import uuid4
 from config import DATABASE_NAME_COLUMNS as columns
+from uuid import uuid4
 import json
 
 
@@ -100,20 +100,23 @@ class EngineWorker:
                     director=movie[columns[3]],
                     length=movie[columns[4]],
                     rating=movie[columns[5]]
-                )
+                ).returning(Movie.id)
         with self.engine.connect() as conn:
-            conn.execute(stmt)
+            patched_id = conn.execute(stmt).first()
             conn.commit()
-        return json.dumps(
-            {"movie": {
-                "id": movie_id,
-                "title":movie[columns[1]],
-                "year":movie[columns[2]],
-                "director":movie[columns[3]],
-                "length":movie[columns[4]],
-                "rating":movie[columns[5]]
-            }}
-        )    
+            if patched_id is not None: 
+                return json.dumps(
+                    {"movie": {
+                        "id": movie_id,
+                        "title":movie[columns[1]],
+                        "year":movie[columns[2]],
+                        "director":movie[columns[3]],
+                        "length":movie[columns[4]],
+                        "rating":movie[columns[5]]
+                    }}
+                )    
+            else:
+                raise Exception('Not found movie')
     
     def deleteMovie(self, movie_id):
         id = hex(movie_id)[2:]
