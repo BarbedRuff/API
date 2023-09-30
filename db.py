@@ -28,7 +28,7 @@ class EngineWorker:
         movies_list = []
         with self.engine.connect() as conn:
             movies = conn.execute(stmt).all()
-            conn.commit()
+            conn.close()
             movies_list = [
                 {
                     "id": int(movie[0], 16),
@@ -43,7 +43,7 @@ class EngineWorker:
         return json.dumps({"list": movies_list})
         
     def addMovie(self, movie):
-        id = uuid4().hex
+        id = hex(uuid4().int)[2:]
         stmt = insert(Movie).values(
             id=id,
             title=movie[columns[1]],
@@ -74,7 +74,7 @@ class EngineWorker:
         stmt = select(Movie).where(Movie.id == id)
         with self.engine.connect() as conn:
             movie = conn.execute(stmt).first()
-            conn.commit()
+            conn.close()
             if movie is not None:
                 return json.dumps(
                     {"movie": {
